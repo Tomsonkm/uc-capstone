@@ -2,7 +2,7 @@
 
 A capstone project platform for University of Canberra students, convenors, sponsors, mentors and tutors. It brings project proposals, group formation, expressions of interest (EOIs), allocations and project communication into one application.
 
-[Open the website](https://uc-capstone-demo.uc-capstone-portal.workers.dev/) · [Source repository](https://github.com/Tomsonkm/uc-capstone)
+[Open the website](https://uc-capstone.uc-capstone-portal.workers.dev/) · [Source repository](https://github.com/Tomsonkm/uc-capstone)
 
 ## Features
 
@@ -112,7 +112,17 @@ The suites cover workflow rules, server permissions, persistence, role access an
 
 ## Deploy to Cloudflare
 
-The current website is deployed manually. **Pushing to GitHub does not automatically deploy it**; Cloudflare's Git integration or another deployment pipeline would need to be configured separately.
+Cloudflare Workers Builds is connected to **Tomsonkm/uc-capstone**, with **main** as the production branch. Pushing a commit to `main` triggers a build and deployment to the **uc-capstone** Worker. Check the build result in Cloudflare before assuming a commit is live.
+
+| Build setting | Value |
+| --- | --- |
+| Production Worker | `uc-capstone` |
+| Production branch | `main` |
+| Root directory | `/` |
+| Build command | `pnpm run build` |
+| Deploy command | `npx wrangler deploy` |
+
+The build generates Cloudflare deployment configuration for the application. For a local manual deployment, `pnpm deploy` explicitly uses `dist/server/wrangler.json`. The configuration includes `keep_vars: true` to retain runtime variables managed through the Cloudflare dashboard. Private credentials remain outside GitHub.
 
 For a new shared-service deployment:
 
@@ -135,7 +145,9 @@ For a new shared-service deployment:
 
 6. Verify signup, inbox delivery, recovery, approved-role access and private file handling before inviting users. Configure an application round before accepting EOIs.
 
-The existing live site uses a private, ignored deployment configuration to retain its current Worker name and runtime settings. For an authorised existing-site deployment, `CAPSTONE_CONFIG` can select that configuration before `pnpm build`. The generated `dist/server/wrangler.json` is what `pnpm deploy` publishes. Check its Worker name and bindings before deployment.
+The production address is **https://uc-capstone.uc-capstone-portal.workers.dev/**. Supabase's Site URL and confirmation/recovery redirect allowlist must use this origin; changing the Worker name does not update Supabase automatically. The previous `uc-capstone-demo` address is no longer the production address.
+
+For authorised alternate deployments, `CAPSTONE_CONFIG` can select a private configuration before `pnpm build`. Check the generated Worker's name and bindings before deployment.
 
 For a separate browser-local demonstration, use `pnpm build:demo` followed by `pnpm deploy`. This selects `wrangler.demo.jsonc` without D1/R2 bindings. Give it a different Worker name before deployment so it does not replace the shared-service website at the current address.
 
