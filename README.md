@@ -1,23 +1,104 @@
 # UC Capstone Project Management
 
-University of Canberra capstone project platform with Student, Convenor, Sponsor, Mentor and Tutor access.
+A capstone project platform for University of Canberra students, convenors, sponsors, mentors and tutors. It brings project proposals, group formation, expressions of interest (EOIs), allocations and project communication into one application.
 
-## Requirements
+[Open the website](https://uc-capstone-demo.uc-capstone-portal.workers.dev/) · [Source repository](https://github.com/Tomsonkm/uc-capstone)
 
-Node.js 22.13+ and pnpm. React 19, TypeScript and Vinext provide the interface/server framework. Cloudflare Workers, D1 and private R2 provide hosting, shared records and documents. Supabase Auth supplies standard password authentication.
+## Features
+
+- Separate student and staff access, with five role-specific dashboards.
+- Email/password signup, email verification, password recovery and remember-me sessions through Supabase Auth.
+- Project catalogue with requirements, skills, deliverables and availability. The supplied S2 2026 catalogue contains 66 populated entries.
+- Student groups of 3–4 members, accepted invitations, editable profiles and group names.
+- Available-student search by username, name, email or skill. Grouped students and existing invitations are excluded.
+- Leader-confirmed group deletion before any EOI submission or project allocation.
+- Saved unit selection: **9785 (Undergraduate)** or **11522 (Postgraduate)**, including before an application round opens.
+- Three ranked project preferences, suitability statements, proposed approaches, submission history and permitted resubmission after rejection.
+- Convenor-controlled sponsor review, allocation drafts, mentor/tutor assignment and duplicate-allocation checks.
+- Authorised communication channels, a shared project workspace, document versions, tasks and in-app notifications.
+
+## Roles and access
+
+| Role | Main responsibilities |
+| --- | --- |
+| Student | Form a group, submit preferences, view allocation results and use assigned project communication and documents. |
+| Convenor | Review proposals and EOIs, forward applications to sponsors, manage accounts and rounds, and finalise allocations. |
+| Sponsor | Manage their own proposals, decide on forwarded applications and work with their assigned student groups. |
+| Mentor | Express mentoring interest, support assigned projects and communicate with students and the convenor. |
+| Tutor | Express tutoring interest, view assignment information and communicate with the convenor. |
+
+Students can access the platform after email verification. Staff permissions require convenor approval. Users cannot grant themselves administrative access. Convenors and tutors do not have access to student project workspaces or project files. Official grading remains in the university's separate systems.
+
+## Project workflow
+
+1. A sponsor submits a proposal for convenor review.
+2. The convenor approves, requests changes or rejects it, then publishes approved projects.
+3. Students form a group and submit three ranked preferences before the deadline, with skills and suitability information.
+4. The convenor reviews applications and forwards project-specific EOIs to the linked sponsor where required.
+5. The sponsor records acceptance or rejection for the convenor.
+6. The convenor reviews and confirms the project and mentor allocation, with tutor assignment where applicable.
+7. Students receive an in-app notification and access their assigned project workspace.
+
+Allocation is based on suitability and convenor judgement, rather than submission order. Rejected groups can revise and resubmit within the permitted deadline or an authorised extension.
+
+## Technology and storage
+
+| Component | Technology |
+| --- | --- |
+| Interface | React 19 and TypeScript |
+| Application framework and build | Vinext and Vite |
+| Hosting and server routes | Cloudflare Workers |
+| Authentication | Supabase Auth |
+| Shared application records | Cloudflare D1 |
+| Private uploaded files | Cloudflare R2 |
+| Tests | Vitest, Testing Library and Playwright |
+
+Real-account records remain in cloud storage after sign-out and can be accessed from another device after signing in. Supabase manages authentication credentials; D1 stores application records, and private R2 stores uploaded files.
+
+The optional **demonstration mode** uses fictional accounts and browser-local data. Its activity is separate from real accounts and is not shared with other devices. The current website supports both modes; the word `demo` in its address does not mean real-account activity is stored locally.
 
 ## Run locally
 
+Requirements: **Node.js 22.13+**, **pnpm**, and Google Chrome for browser tests. The package-manager version is declared in `package.json`.
+
 ```sh
+git clone https://github.com/Tomsonkm/uc-capstone.git
+cd uc-capstone
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open http://127.0.0.1:5173. On a login page choose **Use demonstration**. Fictional usernames: `student`, `convener`, `sponsor`, `mentor`, `tutor`. Shared demo password: `Capstone2026!`. Demonstration data stays in the browser and does not grant real-account access.
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
-For shared records, copy `.env.example` to `.dev.vars` and provide your authentication settings. Apply `drizzle/0000_platform.sql` to the local D1 database using Wrangler. The catalogue import helper generates idempotent SQL from the supplied 66-entry project catalogue. Never commit passwords, local databases or environment files.
+### Explore the fictional demonstration
 
-## Checks
+On a login page, select **Use demonstration**. The public fictional usernames are `student`, `convener`, `sponsor`, `mentor` and `tutor`; their shared demonstration password is `Capstone2026!`. These credentials do not authenticate to the real-account service.
+
+### Configure real-account development
+
+1. Copy `.env.example` to `.dev.vars` and set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` for a Supabase project you control.
+2. Configure the D1 and private R2 bindings in `wrangler.jsonc`. The checked-in resource identifiers belong to this project; replace them when using another Cloudflare account.
+3. Initialise the local database:
+
+   ```sh
+   pnpm exec wrangler d1 migrations apply uc-capstone --local
+   ```
+
+4. Create an `outputs` folder, then generate and import the supplied project catalogue:
+
+   ```sh
+   node scripts/catalogue-import.mjs outputs/catalogue-import.sql
+   pnpm exec wrangler d1 execute uc-capstone --local --file outputs/catalogue-import.sql
+   ```
+
+5. Configure Supabase's Site URL and allowed redirect URLs for the local address. Confirmation uses `/auth/confirm`; recovery uses `/auth/confirm?next=/reset-password`.
+6. Configure custom SMTP for verification and recovery emails. Open the newest email link in the same browser and device that initiated the request.
+
+Cloud-hosted development services need their own authorised Cloudflare configuration. Local D1/R2 development data is separate from the deployed application's data.
+
+No initial convenor is automatically approved. An authorised operator must verify the intended administrator's email ownership and provision that account's D1 permissions before staff approvals can be managed through the portal.
+
+## Validate changes
 
 ```sh
 pnpm typecheck
@@ -27,41 +108,58 @@ pnpm test:e2e
 pnpm build
 ```
 
-Browser tests use Google Chrome. Tests and migrations are retained because they are part of maintaining the application.
+The suites cover workflow rules, server permissions, persistence, role access and browser interactions. Browser tests use Google Chrome. Never use real passwords or production recovery links in automated tests.
 
-## Deployment
+## Deploy to Cloudflare
 
-Create your Cloudflare D1 database and private R2 bucket, then replace the placeholder database ID and bucket name in `wrangler.jsonc`. Configure authentication secrets and allowed verification/reset return URLs for your deployed domain. Apply migrations and import the catalogue, build with `pnpm build`, then deploy with `pnpm deploy`.
+The current website is deployed manually. **Pushing to GitHub does not automatically deploy it**; Cloudflare's Git integration or another deployment pipeline would need to be configured separately.
 
-No real convenor is pre-approved. An authorised verified initial administrator and verified email delivery are required before real-user launch. Backups are manual; scheduled backups and object-storage recovery require an operational policy. Account membership currently supports one role. Official academic grading remains outside this application.
+For a new shared-service deployment:
 
-## GitHub
+1. Sign in to the intended Cloudflare account and configure the Worker name, D1 database and private R2 bucket in `wrangler.jsonc`.
+2. Apply the database migrations and import the catalogue into the intended remote database using Wrangler's `--remote` option. Review the target before changing cloud records.
+3. Build and deploy:
 
-This folder is a standalone source export with no previous Git history. Create a new repository **from this folder**, not its parent. Initialise Git here, review the staged files, and push to your own GitHub repository. The ignore rules exclude dependencies, generated data, credentials and assistant metadata. Environment examples contain blank values only.
+   ```sh
+   pnpm build
+   pnpm deploy
+   ```
 
-## Features
+4. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in the deployed Worker's private runtime configuration. Keep deployment credentials and SMTP passwords outside the repository.
+5. Set Supabase's Site URL to the deployed origin and allow both callback URLs:
 
-- Five role dashboards. Students sign up and verify their email before signing in; staff permissions require convenor approval.
-- Sponsor proposals and convenor review/publication.
-- Student-created groups, three ranked preferences and versioned EOIs.
-- Convenor allocation review with sponsor decisions and conflict checks.
-- Scoped messages, document versions, tasks, notifications and audit reports.
-- Manual private backup snapshots and isolated restore tooling.
+   ```text
+   https://YOUR-HOST/auth/confirm
+   https://YOUR-HOST/auth/confirm?next=/reset-password
+   ```
 
-See `docs/asset-provenance.md` for branding and third-party asset attribution. Required third-party licences are retained.
+6. Verify signup, inbox delivery, recovery, approved-role access and private file handling before inviting users. Configure an application round before accepting EOIs.
 
-## Demonstration-only deployment
+The existing live site uses a private, ignored deployment configuration to retain its current Worker name and runtime settings. For an authorised existing-site deployment, `CAPSTONE_CONFIG` can select that configuration before `pnpm build`. The generated `dist/server/wrangler.json` is what `pnpm deploy` publishes. Check its Worker name and bindings before deployment.
 
-Run `pnpm build:demo`, then `pnpm deploy` to publish a browser-local demonstration. This selects `wrangler.demo.jsonc` and does not bind the shared database or file storage. Do not add authentication-provider secrets to this demo Worker. Use the normal build/configuration for the future full service.
+For a separate browser-local demonstration, use `pnpm build:demo` followed by `pnpm deploy`. This selects `wrangler.demo.jsonc` without D1/R2 bindings. Give it a different Worker name before deployment so it does not replace the shared-service website at the current address.
 
-## Workflow corrections (29 October 2026)
+## Repository layout
 
-- Rejected EOIs can be revised and resubmitted. A recorded group-specific extension lasts 72 hours after rejection, or until the original deadline if later; convenors can manage further exceptions. Older saved demo rejections use the recorded decision time, so refreshing does not extend the window.
-- Students can edit their display name/skills; leaders can rename their group. Submitted application snapshots remain unchanged until resubmission.
-- Tutor access is limited to tutoring interests, assignment information, communications and notifications. Convenors administer proposals and allocations without access to student workspaces, project files or project conversations.
-- Administrative exports exclude student work; full operational backups must be managed outside the convenor portal. Historical snapshots without the authorised convenor identity cannot be downloaded from the portal.
-- Proposal submission/review, sponsor requests and forwarded application decisions have explicit delivery/status feedback. Opening notification details marks it read.
-- The guide has role-specific instructions. Reset clearly explains the browser-local data it clears, including uploaded demonstration files.
+```text
+app/         Server routes and application entry points
+src/         Interface, domain rules, services and styles
+server/      Authentication, permissions, persistence and uploads
+public/      Public assets
+drizzle/    Database migrations
+scripts/     Runtime, catalogue import and restore utilities
+tests/       Browser tests
+docs/        Asset attribution
+```
 
-The demonstration is available at https://uc-capstone-demo.uc-capstone-portal.workers.dev. Requests and activity are shared between role logins in one browser only; they are not delivered to other devices or emailed.
+Environment files, local deployment settings, dependencies, build output, local databases and private attachments are excluded through `.gitignore`. Commit the lockfile, tests, migrations and required licences.
 
+## Operational notes
+
+- Each account currently has one application role.
+- Authentication emails depend on the configured SMTP provider. A successful request does not prove inbox delivery.
+- Project sponsors must be linked to active sponsor accounts before receiving EOI review requests.
+- Convenor exports contain administrative information and exclude student project work. Full database/file backup, scheduling and recovery remain operator responsibilities.
+- `scripts/restore-backup.mjs` validates a snapshot or restores it into a new local SQLite file; it does not overwrite an existing database or restore R2 file contents.
+
+See [asset provenance](docs/asset-provenance.md) for University branding and third-party asset attribution. Required third-party licences are retained.
