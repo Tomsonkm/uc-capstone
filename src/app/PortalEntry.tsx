@@ -1,0 +1,15 @@
+import type {ReactNode} from 'react';
+import {Link,useSearchParams} from 'react-router-dom';
+import {GraduationCap,UsersRound,ArrowUpRight,BriefcaseBusiness,Settings2,BookOpen} from 'lucide-react';
+import {Brand} from '../components/Brand';
+import {portals} from '../services/demoAuth';
+
+export function EntryLayout({children,compact=false}:{children:ReactNode;compact?:boolean}){
+  return <div className={`entry ${compact?'login-entry':''}`}><section className="entry-story"><Brand variant="dark"/><div className="entry-story-copy"><h1>Great ideas.<br/>Real impact.<br/>Your next chapter.</h1><p>Bring your team together. Connect with industry. Build something that matters.</p></div><div className="entry-orbits" aria-hidden="true"/><div className="entry-footer">University of Canberra · Capstone projects</div></section><main className="entry-access">{children}</main></div>;
+}
+export function PortalEntry(){
+ const [params]=useSearchParams(),staff=params.get('portal')==='staff';
+ const icons={student:GraduationCap,mentor:UsersRound,sponsor:BriefcaseBusiness,convener:Settings2,tutor:BookOpen};
+ return <EntryLayout><h2>Capstone Project Management</h2><p className="portal-entry-description">{staff?'Four staff roles. One connected semester.':'Your projects. Your people. Your next step.'}</p>{staff?<><Link className="login-back" to="/">Back to student and staff access</Link><div className="portal-grid">{portals.filter(p=>p.role!=='student').map(p=>{const Icon=icons[p.slug];return <Link className="portal-card" key={p.slug} to={`/login/${p.slug}`} aria-label={`${p.label} portal`}><span className="portal-icon"><Icon size={23}/></span><ArrowUpRight className="portal-arrow" size={20}/><span className="portal-card-copy"><strong>{p.label} portal</strong><small>{p.description}</small></span></Link>;})}</div></>:<div className="portal-grid"><Link className="portal-card" to="/login/student" aria-label="Student portal"><span className="portal-icon"><GraduationCap size={25}/></span><ArrowUpRight className="portal-arrow" size={20}/><span className="portal-card-copy"><strong>Student portal</strong><small>Find projects, submit your EOI and build together.</small></span></Link><Link className="portal-card" to="/?portal=staff" aria-label="Staff portal"><span className="portal-icon"><UsersRound size={25}/></span><ArrowUpRight className="portal-arrow" size={20}/><span className="portal-card-copy"><strong>Staff portal</strong><small>Convenors, sponsors, mentors and tutors.</small></span></Link></div>}<div className="notice"><strong>Standard account access</strong><p>Sign in with your email or username and password. Your approved role determines access. A separate fictional demonstration is available on each sign-in page.</p></div><section className="entry-reference"><span className="hero-label">Previous projects</span><h3>See what a capstone can become.</h3><p>Approved previous-project showcases will be published here for reference. No private student records are displayed.</p></section></EntryLayout>;
+}
+export function initials(name:string){return name.replace('Dr ','').split(' ').map(x=>x[0]).slice(0,2).join('');}

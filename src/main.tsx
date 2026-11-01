@@ -1,0 +1,15 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import '@fontsource/roboto/latin-400.css';
+import '@fontsource/roboto/latin-500.css';
+import '@fontsource/roboto/latin-700.css';
+import '@fontsource/stix-two-text/latin-400.css';
+import '@fontsource/stix-two-text/latin-600.css';
+import './styles/tokens.css';
+import './styles/global.css';
+import './styles/layout.css';
+import './styles/login.css';
+import './styles/catalogue.css';
+import './styles/platform.css';
+import App from './app/App';
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

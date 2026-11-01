@@ -1,0 +1,5 @@
+import {sqliteTable,text,integer,primaryKey,uniqueIndex} from 'drizzle-orm/sqlite-core';
+export const semesters=sqliteTable('semesters',{id:text('id').primaryKey(),revision:integer('revision').notNull().default(0),mutation:text('mutation').notNull().default('')});
+export const entities=sqliteTable('entities',{collection:text('collection').notNull(),id:text('id').notNull(),body:text('body').notNull()},t=>[primaryKey({columns:[t.collection,t.id]})]);
+export const accounts=sqliteTable('accounts',{id:text('id').primaryKey(),email:text('email').notNull(),username:text('username').notNull(),name:text('name').notNull(),role:text('role').notNull().default('student'),approved:integer('approved').notNull().default(0),active:integer('active').notNull().default(1),createdAt:text('created_at').notNull()},t=>[uniqueIndex('account_email').on(t.email),uniqueIndex('account_username').on(t.username)]);
+export const operations=sqliteTable('operations',{id:text('id').primaryKey(),actorId:text('actor_id').notNull(),createdAt:text('created_at').notNull()});

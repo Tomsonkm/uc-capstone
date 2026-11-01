@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "uc-capstone",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "uc-capstone",
+    "database_id": "93c514c0-a59b-4ddc-b1af-9b16142bbab6",
+    "migrations_dir": "drizzle"
+  }],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "uc-capstone-documents" }]
+}

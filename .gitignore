@@ -1,0 +1,49 @@
+# Dependencies, generated builds and local data
+node_modules/
+dist/
+.next/
+.vinext/
+.wrangler/
+outputs/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+next-env.d.ts
+*.log
+*.zip
+*.tar
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+# Credentials and local settings
+.env*
+!.env.example
+.dev.vars*
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Assistant metadata and private attachments
+.openai/
+.codex/
+.codex-attachments/
+.agents/
+.claude/
+.cursor/
+.github/copilot-instructions.md
+.superpowers/
+.skill-setup/
+.sites-runtime/
+docs/superpowers/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Local deployment configuration
+wrangler.live.jsonc

@@ -1,0 +1,17 @@
+import {login,declareMentor,confirmGroup} from './helpers';
+import {test,expect} from '@playwright/test';
+test('group EOI through convenor allocation and project review',async({page})=>{
+ await login(page,'student');
+ await page.getByRole('link',{name:'Explore projects',exact:true}).first().click();
+ await page.getByLabel('Include demo archive').check();
+ for(const name of ['A more connected Canberra','Better care, closer to home','Making energy visible'])await page.locator('article').filter({has:page.getByRole('link',{name,exact:false})}).getByRole('button',{name:'Add to preferences'}).click();
+ await page.getByRole('link',{name:'My preferences',exact:true}).click();
+ for(let i=0;i<3;i++){await page.getByLabel('Why is your group a good fit?').nth(i).fill('Our group combines React, Python and UX research experience.');await page.getByLabel('How would you complete this project?').nth(i).fill('We will research, prototype, implement and test with the sponsor.');await page.getByLabel('How would you complete this project?').nth(i).blur();}
+ await page.getByRole('button',{name:'Review application'}).click();await page.getByRole('button',{name:'Submit group EOI'}).click();await expect(page.getByText('Application submitted for convenor review.',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();await declareMentor(page);await confirmGroup(page,'The Innovators');
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();await login(page,'student');await page.getByRole('link',{name:'Project workspace',exact:true}).click();
+ await page.getByRole('button',{name:'Deliverables',exact:true}).click();await page.getByLabel('Deliverable title').fill('Final project report');await page.getByLabel('Deliverable link').fill('https://example.com/report');await page.getByLabel('Description').fill('Report and working demo.');await page.getByRole('button',{name:'Submit deliverable'}).click();await expect(page.getByText('Final project report',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();await login(page,'sponsor');await page.getByRole('link',{name:'Project workspace',exact:true}).click();await page.getByRole('link',{name:/A more connected Canberra/}).click();await page.getByRole('button',{name:'Discussion',exact:true}).click();await page.getByLabel('Your message').fill('Please include the accessibility findings.');await page.getByRole('button',{name:'Post message'}).click();await expect(page.getByText('Please include the accessibility findings.',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();await login(page,'mentor');await page.goto('/mentor/workspace/project-1');await page.getByRole('button',{name:'Deliverables',exact:true}).click();await page.getByLabel('Review status').selectOption('Review complete');await page.getByLabel('Feedback', {exact:true}).fill('The report addresses the requirements and includes useful accessibility findings.');await page.getByRole('button',{name:'Share review'}).click();await expect(page.getByText('Review feedback shared.',{exact:true})).toBeVisible();
+ await page.reload();await page.getByRole('button',{name:'Deliverables',exact:true}).click();await expect(page.getByText('The report addresses the requirements and includes useful accessibility findings.',{exact:true})).toBeVisible();
+});
